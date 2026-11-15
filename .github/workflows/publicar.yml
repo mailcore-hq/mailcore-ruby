@@ -126,14 +126,60 @@ jobs:
           raise 'Gem divergente.' unless pacote.spec.name == 'mailcore' && pacote.spec.version.to_s == versao
           RUBY
       - name: Obter credencial temporária pelo publicador confiável
-        uses: rubygems/configure-rubygems-credentials@17e51a8c9fcf6d5f709e04cc612fd105f9273170
-        with:
-          gem-server: https://rubygems.org
-          trusted-publisher: true
+        env:
+          RUBYGEMS_PROPRIETARIO: "256152"
+        run: |
+          ruby <<'RUBY'
+          require 'json'
+          require 'net/http'
+          require 'openssl'
+          require 'uri'
+
+          def consultar_json(uri, pedido)
+            conexao = Net::HTTP.new(uri.host, uri.port, nil)
+            conexao.use_ssl = true
+            conexao.verify_mode = OpenSSL::SSL::VERIFY_PEER
+            conexao.verify_hostname = true
+            conexao.open_timeout = 10
+            conexao.read_timeout = 30
+            conexao.write_timeout = 30
+            resposta = conexao.start { conexao.request(pedido) }
+            raise 'Autenticação temporária recusada.' unless resposta.is_a?(Net::HTTPSuccess)
+            JSON.parse(resposta.body)
+          end
+
+          begin
+            proprietario = ENV.fetch('RUBYGEMS_PROPRIETARIO')
+            raise 'Proprietário divergente.' unless proprietario == '256152'
+            emissor = URI(ENV.fetch('ACTIONS_ID_TOKEN_REQUEST_URL'))
+            raise 'Emissor inválido.' unless emissor.scheme == 'https' && emissor.host.end_with?('.actions.githubusercontent.com')
+            consulta = URI.decode_www_form(emissor.query.to_s).reject { |nome, _| nome == 'audience' }
+            emissor.query = URI.encode_www_form(consulta + [['audience', 'rubygems.org']])
+            pedido = Net::HTTP::Get.new(emissor)
+            pedido['Authorization'] = "Bearer #{ENV.fetch('ACTIONS_ID_TOKEN_REQUEST_TOKEN')}"
+            jwt = consultar_json(emissor, pedido).fetch('value')
+            raise 'Identidade inválida.' unless jwt.is_a?(String) && jwt.match?(/\A[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\z/)
+            puts "::add-mask::#{jwt}"
+
+            destino = URI('https://rubygems.org/api/v1/oidc/trusted_publisher/exchange_token')
+            troca = Net::HTTP::Post.new(destino, 'Content-Type' => 'application/json', 'Accept' => 'application/json')
+            troca.body = JSON.generate(jwt: jwt, owner: proprietario)
+            credencial = consultar_json(destino, troca)
+            raise 'Escopo de publicação divergente.' unless credencial.fetch('scopes') == ['push_rubygem']
+            chave = credencial.fetch('rubygems_api_key')
+            raise 'Credencial inválida.' unless chave.is_a?(String) && chave.match?(/\A[!-~]{20,4096}\z/)
+            puts "::add-mask::#{chave.gsub('%', '%25')}"
+            File.open(ENV.fetch('GITHUB_ENV'), 'a') { |arquivo| arquivo.puts "GEM_HOST_API_KEY=#{chave}" }
+          rescue StandardError
+            abort 'Falha ao obter a credencial temporária; nenhum token é exibido.'
+          end
+          RUBY
       - name: Publicar somente a gem validada
         env:
           ARQUIVO_GEM: ${{ needs.preparar.outputs.arquivo }}
         run: gem push --host https://rubygems.org "pacote/$ARQUIVO_GEM"
       - name: Remover a credencial temporária do runner
         if: always()
-        run: rm -f "$HOME/.gem/credentials"
+        run: |
+          rm -f "$HOME/.gem/credentials"
+          printf 'GEM_HOST_API_KEY=\n' >> "$GITHUB_ENV"
