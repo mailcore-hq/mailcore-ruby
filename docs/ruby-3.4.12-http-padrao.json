@@ -1,0 +1,22 @@
+{
+  "data_utc": "2026-11-14T14:01:46Z",
+  "ruby": "3.4.12",
+  "plataforma": "x86_64-linux",
+  "imagem": "sha256:92daa531a314ef9bef6bd11fcf8fab79f76f3b3a26191785198f1749c5c40989",
+  "resultado": "aprovado",
+  "suites": [
+    {
+      "arquivo": "testes/testes_transporte.rb",
+      "aprovado": true,
+      "testes": 42,
+      "assercoes": 280,
+      "falhas": 0,
+      "erros": 0,
+      "ignorados": 0
+    }
+  ],
+  "perfil": "net_http_padrao_do_ruby",
+  "net_http": "0.6.0",
+  "total_testes": 42,
+  "total_assercoes": 280
+}

@@ -1,0 +1,11 @@
+.git
+.bundle
+vendor
+pkg
+tmp
+*.gem
+*.zip
+*.log
+.env
+.env.*
+**/__pycache__

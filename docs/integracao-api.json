@@ -1,0 +1,48 @@
+{
+  "data_utc": "2026-11-14T13:51:11.583482+00:00",
+  "resultado": "aprovado",
+  "ambiente": "api_postgres_tls_exclusivos_sem_worker_sem_portas",
+  "instalacao_host": false,
+  "rede_interna": true,
+  "portas_publicadas": false,
+  "worker_executado": false,
+  "smtp_executado": false,
+  "deploy_executado": false,
+  "tls_api_verificado": true,
+  "tls_postgres": "verify-full",
+  "cenarios": [
+    "chaves_full_sending_escopo_inspect",
+    "envio_composto_idempotencia_409_download_cancelamento",
+    "lote_atomico_repeticao_conflito",
+    "dominios_capacidades_tracking_crud",
+    "contatos_nulos_catalogos_exportacao_csv_fluxo",
+    "modelos_pastas_versoes_previa_publicacao_cas",
+    "marketing_crud_sem_disparo",
+    "caixas_etiquetas_rascunhos_cas_sem_envio",
+    "recebimento_mime_real_pendente_bytes_fluxo",
+    "cli_revogacao_e_limpeza_crud"
+  ],
+  "etapa": "concluido",
+  "imagens": {
+    "cliente": "sha256:1b334f043e1073752505db50e5d893d4c691a6d5478125ad5eee0038af2a2967",
+    "api_runtime": "sha256:158e95e9b87f2a126c038e6931b2f956fe6120f3566fd047a29250bd7783ff33",
+    "compilador": "sha256:8fa55b2f3ddf97471ab6a767bfa3f37e6bad0986ba823e75fea57e2a2a5c3073",
+    "postgres": "sha256:f1ea2a1a4fb7b68d4836be1fdcb8a6466a89b072158bf9d97663600538c294c5"
+  },
+  "backend_revisao": "83c2fa9859e03473e7af56eede97c6a1cad8592c",
+  "backend_fontes_sha256": "d31c825268a64c858276827f47d27e506f543421327f487d7165e511359e248f",
+  "backend_fontes_alterados": false,
+  "api_compilada_neste_ensaio": true,
+  "api_binario_sha256": "3cd977ab90dbfcc0067b7d0b85d120ae9132f4e873cc223298f901fc1dbd35bf",
+  "migracoes_aplicadas": 23,
+  "ruby": "3.4.12",
+  "recebimento_processado_por_worker": false,
+  "rails_real_exercitado": false,
+  "persistencia_sintetica": {
+    "mensagens": 3,
+    "tarefas_envio": 3,
+    "recebidos": 1,
+    "recebidos_pendentes": 1
+  },
+  "limpeza_concluida": true
+}

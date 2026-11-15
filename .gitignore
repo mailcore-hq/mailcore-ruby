@@ -1,0 +1,12 @@
+/.bundle/
+/vendor/
+/pkg/
+/tmp/
+*.gem
+*.gem.sha256
+*.zip
+*.log
+.env
+.env.*
+!.env.example
+__pycache__/

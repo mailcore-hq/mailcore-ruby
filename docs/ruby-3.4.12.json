@@ -1,0 +1,66 @@
+{
+  "data_utc": "2026-11-14T14:01:40Z",
+  "ruby": "3.4.12",
+  "plataforma": "x86_64-linux",
+  "imagem": "sha256:92daa531a314ef9bef6bd11fcf8fab79f76f3b3a26191785198f1749c5c40989",
+  "resultado": "aprovado",
+  "suites": [
+    {
+      "arquivo": "testes/testes_action_mailbox.rb",
+      "aprovado": true,
+      "testes": 13,
+      "assercoes": 67,
+      "falhas": 0,
+      "erros": 0,
+      "ignorados": 0
+    },
+    {
+      "arquivo": "testes/testes_action_mailer.rb",
+      "aprovado": true,
+      "testes": 9,
+      "assercoes": 37,
+      "falhas": 0,
+      "erros": 0,
+      "ignorados": 0
+    },
+    {
+      "arquivo": "testes/testes_core.rb",
+      "aprovado": true,
+      "testes": 5,
+      "assercoes": 66,
+      "falhas": 0,
+      "erros": 0,
+      "ignorados": 0
+    },
+    {
+      "arquivo": "testes/testes_recursos.rb",
+      "aprovado": true,
+      "testes": 156,
+      "assercoes": 513,
+      "falhas": 0,
+      "erros": 0,
+      "ignorados": 0
+    },
+    {
+      "arquivo": "testes/testes_sinatra.rb",
+      "aprovado": true,
+      "testes": 11,
+      "assercoes": 250,
+      "falhas": 0,
+      "erros": 0,
+      "ignorados": 0
+    },
+    {
+      "arquivo": "testes/testes_transporte.rb",
+      "aprovado": true,
+      "testes": 42,
+      "assercoes": 280,
+      "falhas": 0,
+      "erros": 0,
+      "ignorados": 0
+    }
+  ],
+  "perfil": "dependencias_lockfile",
+  "total_testes": 236,
+  "total_assercoes": 1213
+}
