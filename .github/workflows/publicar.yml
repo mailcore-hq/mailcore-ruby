@@ -1,0 +1,139 @@
+name: Publicar gem alpha no RubyGems
+
+on:
+  workflow_dispatch:
+    inputs:
+      versao:
+        description: Versão exata da gem, como 0.1.0.alpha.1
+        required: true
+        default: 0.1.0.alpha.1
+        type: string
+
+permissions: {}
+
+concurrency:
+  group: publicar-rubygems
+  cancel-in-progress: false
+
+jobs:
+  preparar:
+    if: github.repository == 'mailcore-hq/mailcore-ruby' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      artefato_id: ${{ steps.artefato.outputs.artifact-id }}
+      arquivo: ${{ steps.gem.outputs.arquivo }}
+      sha256: ${{ steps.gem.outputs.sha256 }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: ruby/setup-ruby@b3aaceaef7e0ee231b499e7b5f49c03fc1d32199 # v1
+        with:
+          ruby-version: "3.4"
+          bundler: none
+          bundler-cache: false
+      - name: Conferir versão, construir e validar a gem
+        id: gem
+        env:
+          VERSAO_PUBLICAR: ${{ inputs.versao }}
+        run: |
+          ruby <<'RUBY'
+          require 'rubygems/package'
+          require 'digest'
+          require 'fileutils'
+
+          versao = ENV.fetch('VERSAO_PUBLICAR')
+          especificacao = Gem::Specification.load('mailcore.gemspec')
+          raise 'Especificação da gem ausente.' unless especificacao
+          raise 'Nome da gem incorreto.' unless especificacao.name == 'mailcore'
+          raise 'Versão divergente.' unless especificacao.version.to_s == versao
+          raise 'Versão não normalizada.' unless Gem::Version.new(versao).to_s == versao
+          raise 'A distribuição deve continuar alpha.' unless especificacao.version.prerelease? && especificacao.version.segments.include?('alpha')
+          raise 'Origem da gem divergente.' unless especificacao.metadata.fetch('source_code_uri') == 'https://github.com/mailcore-hq/mailcore-ruby'
+
+          FileUtils.mkdir_p('dist')
+          arquivo = "mailcore-#{especificacao.version}.gem"
+          caminho = File.join('dist', arquivo)
+          system('gem', 'build', 'mailcore.gemspec', '--output', caminho, exception: true)
+          pacote = Gem::Package.new(caminho)
+          pacote.verify
+          raise 'Artefato divergente.' unless pacote.spec.name == 'mailcore' && pacote.spec.version.to_s == versao
+          proibido = %r{(?:\A|/)(?:\.git|\.local|node_modules|vendor|dist|testes)(?:/|\z)|(?:\A|/)\.env(?:\.|\z)}
+          raise 'Arquivo privado no artefato.' if pacote.contents.any? { |nome| proibido.match?(nome) }
+
+          resumo = Digest::SHA256.file(caminho).hexdigest
+          File.open(ENV.fetch('GITHUB_OUTPUT'), 'a') do |saida|
+            saida.puts "arquivo=#{arquivo}"
+            saida.puts "sha256=#{resumo}"
+          end
+          puts "Gem validada: #{arquivo}; SHA-256 #{resumo}"
+          RUBY
+      - name: Instalar e verificar o consumidor separado
+        env:
+          ARQUIVO_GEM: ${{ steps.gem.outputs.arquivo }}
+        run: |
+          gem install --local --no-document "dist/$ARQUIVO_GEM"
+          cd "$RUNNER_TEMP"
+          ruby "$GITHUB_WORKSPACE/scripts/verificar_instalacao.rb"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        id: artefato
+        with:
+          name: mailcore-gem-${{ inputs.versao }}
+          path: dist/${{ steps.gem.outputs.arquivo }}
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+
+  publicar:
+    needs: preparar
+    if: github.repository == 'mailcore-hq/mailcore-ruby' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: ruby/setup-ruby@b3aaceaef7e0ee231b499e7b5f49c03fc1d32199 # v1
+        with:
+          ruby-version: "3.4"
+          bundler: none
+          bundler-cache: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          artifact-ids: ${{ needs.preparar.outputs.artefato_id }}
+          path: pacote
+          digest-mismatch: error
+      - name: Conferir a integridade do artefato aprovado
+        env:
+          ARQUIVO_GEM: ${{ needs.preparar.outputs.arquivo }}
+          SHA256_ESPERADO: ${{ needs.preparar.outputs.sha256 }}
+          VERSAO_PUBLICAR: ${{ inputs.versao }}
+        run: |
+          ruby <<'RUBY'
+          require 'rubygems/package'
+          require 'digest'
+
+          versao = ENV.fetch('VERSAO_PUBLICAR')
+          arquivo = ENV.fetch('ARQUIVO_GEM')
+          raise 'Nome de arquivo divergente.' unless arquivo == "mailcore-#{versao}.gem"
+          caminho = File.join('pacote', arquivo)
+          raise 'SHA-256 divergente.' unless Digest::SHA256.file(caminho).hexdigest == ENV.fetch('SHA256_ESPERADO')
+          pacote = Gem::Package.new(caminho)
+          pacote.verify
+          raise 'Gem divergente.' unless pacote.spec.name == 'mailcore' && pacote.spec.version.to_s == versao
+          RUBY
+      - name: Obter credencial temporária pelo publicador confiável
+        uses: rubygems/configure-rubygems-credentials@17e51a8c9fcf6d5f709e04cc612fd105f9273170
+        with:
+          gem-server: https://rubygems.org
+          trusted-publisher: true
+      - name: Publicar somente a gem validada
+        env:
+          ARQUIVO_GEM: ${{ needs.preparar.outputs.arquivo }}
+        run: gem push --host https://rubygems.org "pacote/$ARQUIVO_GEM"
+      - name: Remover a credencial temporária do runner
+        if: always()
+        run: rm -f "$HOME/.gem/credentials"

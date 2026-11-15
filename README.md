@@ -3,11 +3,25 @@
 [Código-fonte](https://github.com/mailcore-hq/mailcore-ruby) · [Problemas e sugestões](https://github.com/mailcore-hq/mailcore-ruby/issues)
 
 Cliente Ruby da API Mailcore, com integração opcional com Rails. Versão
-`0.1.0.alpha.1`, ainda sem publicação no RubyGems. Requer Ruby 3.3 ou superior.
+alpha `0.1.0.alpha.1`. Requer Ruby 3.3 ou superior.
 Cada instância mantém sua configuração; pedidos concorrentes não compartilham
 credenciais ou estado de envio.
 
-## Instalação local
+## Instalação
+
+Instale a versão alpha pelo RubyGems:
+
+```sh
+gem install mailcore --version 0.1.0.alpha.1 --pre
+```
+
+Com Bundler, adicione ao Gemfile da aplicação:
+
+```ruby
+gem 'mailcore', '0.1.0.alpha.1'
+```
+
+### Desenvolvimento e instalação local
 
 A verificação Docker gera `pkg/mailcore-0.1.0.alpha.1.gem`. Em uma aplicação Ruby:
 
