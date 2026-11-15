@@ -12,7 +12,7 @@ credenciais ou estado de envio.
 Instale a versão alpha pelo RubyGems:
 
 ```sh
-gem install mailcore --version 0.1.0.alpha.1 --pre
+gem install mailcore --version 0.1.0.alpha.1 --no-prerelease
 ```
 
 Com Bundler, adicione ao Gemfile da aplicação:
@@ -38,8 +38,10 @@ gem 'mailcore', path: '/caminho/libs-mailcore/mailcore-ruby'
 
 Não é necessário instalar Rails para utilizar o cliente. As dependências de
 runtime são `net-http`, `json`, `openssl`, `base64` e `timeout`; o pacote não
-inclui um cliente HTTP compilado próprio. A faixa JSON 2.x mantém compatibilidade
-com a versão Rails exercitada pelos testes.
+inclui um cliente HTTP compilado próprio. A versão alpha está fixada no comando;
+`--no-prerelease` mantém a resolução das dependências em versões estáveis.
+A instalação pública foi validada com JSON 2.x, também utilizado na matriz Rails.
+Veja os [checksums e resultados da publicação](docs/publicacao.md).
 
 ## Primeiro envio
 

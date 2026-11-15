@@ -12,4 +12,6 @@
   opcional com Action Mailer e Action Mailbox.
 - Desenvolvimento, matriz de testes e preparação da distribuição em Docker.
 
-Esta versão é alpha e não foi publicada no RubyGems.
+Esta versão alpha foi [publicada no RubyGems](https://rubygems.org/gems/mailcore/versions/0.1.0.alpha.1)
+em 15/11/2026. A instalação pública e o consumidor separado foram aprovados;
+consulte o [registro de publicação](docs/publicacao.md).

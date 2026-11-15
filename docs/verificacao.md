@@ -51,6 +51,27 @@ containers Ruby mínimos e verifica que o cliente puro carrega sem Rails/Sinatra
 O arquivo SHA-256 acompanha a gem. Os pacotes contêm código/documentação próprios,
 sem testes, credenciais, arquivos de ambiente ou dependências vendorizadas.
 
+## Consumo publicado no RubyGems
+
+Em 15/11/2026, a gem `mailcore` `0.1.0.alpha.1` foi instalada do RubyGems padrão
+com Ruby 3.4.12, RubyGems 3.6.9, `GEM_HOME` e cache inicialmente vazios:
+
+```sh
+gem install mailcore --version 0.1.0.alpha.1 --no-prerelease
+```
+
+Esse comando carregou JSON 2.21.2, net-http 0.10.0, OpenSSL 4.0.2, base64 0.3.0
+e timeout 0.6.1, todas versões estáveis. Apenas retirar `--pre` não produziu o
+mesmo resultado: a versão alpha explícita habilitou candidatos prerelease no
+RubyGems 3.6.9. Por isso, o comando recomendado declara `--no-prerelease`.
+
+O consumidor separado carregou o código da gem instalada e exercitou os
+151 métodos, com 151 requisições HTTP sintéticas e três callbacks de download.
+Essa etapa rodou sem rede, credenciais reais ou envio de e-mail; o cliente puro
+não carregou Rails ou Sinatra. Os containers e o diretório de instalação foram
+removidos. O [registro de publicação](publicacao.md) contém as referências
+públicas do CI, da origem e da integridade do artefato recebido.
+
 ## API e PostgreSQL reais locais
 
 O ensaio adicional é separado por precisar do checkout backend e de imagens e
@@ -97,4 +118,4 @@ sem simular entrega SMTP. Os testes Rails não comprovam a configuração da fil
 banco, armazenamento ou segredos de uma aplicação de produção. A matriz Docker
 não garante todos os sistemas operacionais, versões Rails ou ambientes hospedados.
 Não foi medido desempenho em produção nem equivalência de latência com outro
-serviço. Uma publicação ou implantação futura exige validação própria.
+serviço. Outras publicações e implantações exigem validação própria.
